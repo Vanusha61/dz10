@@ -1,33 +1,31 @@
 import requests
+from collections import Counter
+import re
 
 def get_text(url):
     response = requests.get(url)
     return response.text
 
-def count_word_frequencies(url, word):
-    text = get_text(url)
-    words = text.split()
-    count = 0
-    for w in words:
-        if w == word:
-            count += 1
-    return count
-
 def main():
     words_file = "words.txt"
     url = "https://eng.mipt.ru/why-mipt/"
 
-    words_to_count = []
-    with open(words_file, 'r') as file:
-        for line in file:
-            word = line.strip()
-            if word:
-                words_to_count.append(word)
+    # читаем слова из файла
+    with open(words_file) as file:
+        words_to_count = [line.strip() for line in file if line.strip()]
 
-    frequencies = {}
-    for word in words_to_count:
-        frequencies[word] = count_word_frequencies(url, word)
-    
+    # один запрос к сайту
+    text = get_text(url)
+
+    # токенизация текста
+    words = re.findall(r'\b\w+\b', text.lower())
+
+    # считаем частоты
+    word_counts = Counter(words)
+
+    # формируем результат
+    frequencies = {word: word_counts.get(word.lower(), 0) for word in words_to_count}
+
     print(frequencies)
 
 if __name__ == "__main__":
